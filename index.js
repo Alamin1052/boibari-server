@@ -57,6 +57,40 @@ async function run() {
             });
         });
 
+        // Update book 
+        app.put("/update-book/:id", async (req, res) => {
+            const { id } = req.params;
+            const data = req.body;
+            // console.log(id)
+            // console.log(data)
+            const objectId = new ObjectId(id);
+            const filter = { _id: objectId };
+            const update = {
+                $set: data,
+            };
+
+            const result = await booksCollection.updateOne(filter, update);
+
+            res.send({
+                success: true,
+                result,
+            });
+        });
+
+        // Delete book
+        app.delete("/books/:id", async (req, res) => {
+            const { id } = req.params;
+            const objectId = new ObjectId(id)
+            const filter = { _id: objectId }
+            const result = await booksCollection.deleteOne({ _id: filter });
+
+            res.send({
+                success: true,
+                result,
+            });
+        });
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
