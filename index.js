@@ -5,8 +5,6 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000
 
-// boibaridb
-// YzNSlbDHiBgkCXaS
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +23,16 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
+
+        const db = client.db('boibari-db');
+        const booksCollection = db.collection('books');
+
+        // GET Books
+        app.get("/books", async (req, res) => {
+            const result = await booksCollection.find().toArray();
+            res.send(result);
+        });
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
