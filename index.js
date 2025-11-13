@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000
 
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./smart-deals-firebase-admin-key.json");
+const serviceAccount = require("./boibari-user-firebase-adminsdk.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -51,6 +51,25 @@ async function run() {
 
         const db = client.db('boibari-db');
         const booksCollection = db.collection('books');
+        const commentsCollection = db.collection("comment")
+
+        // POST comment
+        app.post("/comments", async (req, res) => {
+            const comment = req.body;
+            const result = await commentsCollection.insertOne(comment);
+            res.send(result);
+        });
+
+        // GET comments by bookId
+        app.get("/comments/:bookId", async (req, res) => {
+            const bookId = req.params.bookId;
+            const result = await commentsCollection
+                .find({ bookId })
+                .sort({ createdAt: -1 })
+                .toArray();
+            res.send(result);
+        });
+
 
         // GET Books
         app.get("/all-books", async (req, res) => {
@@ -83,7 +102,7 @@ async function run() {
         });
 
         // Update book 
-        app.put("/update-book/:id", async (req, res) => {
+        app.put("/update-book/:id", verifyFireBaseToken, async (req, res) => {
             const { id } = req.params;
             const data = req.body;
             // console.log(id)
@@ -107,7 +126,7 @@ async function run() {
             const { id } = req.params;
             const objectId = new ObjectId(id)
             const filter = { _id: objectId }
-            const result = await booksCollection.deleteOne({ _id: filter });
+            const result = await booksCollection.deleteOne(filter);
 
             res.send({
                 success: true,
@@ -117,8 +136,20 @@ async function run() {
 
         app.get("/my-books", verifyFireBaseToken, async (req, res) => {
             const email = req.query.email
-            const result = await booksCollection.find({ created_by: email }).toArray()
+            const result = await booksCollection.find({ userEmail: email }).toArray()
             res.send(result)
+        });
+
+        app.get("/latest-books", async (req, res) => {
+            const result = await booksCollection
+                .find()
+                .sort({ created_at: "desc" })
+                .limit(6)
+                .toArray();
+
+            console.log(result);
+
+            res.send(result);
         });
 
 
