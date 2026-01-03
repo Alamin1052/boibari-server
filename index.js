@@ -47,27 +47,24 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const db = client.db('boibari-db');
         const booksCollection = db.collection('books');
         const commentsCollection = db.collection("comment")
 
         // POST comment
-        app.post("/comments", async (req, res) => {
-            const comment = req.body;
-            const result = await commentsCollection.insertOne(comment);
+        app.post("/add-comment", async (req, res) => {
+            const newComment = req.body;
+            const result = await commentsCollection.insertOne(newComment);
             res.send(result);
         });
 
         // GET comments by bookId
-        app.get("/comments/:bookId", async (req, res) => {
-            const bookId = req.params.bookId;
-            const result = await commentsCollection
-                .find({ bookId })
-                .sort({ createdAt: -1 })
-                .toArray();
-            res.send(result);
+        app.get("/comments/:id", async (req, res) => {
+            const { id } = req.params;
+            const comments = await commentsCollection.find({ bookId: id }).toArray();
+            res.send(comments);
         });
 
 
@@ -144,7 +141,7 @@ async function run() {
             const result = await booksCollection
                 .find()
                 .sort({ created_at: "desc" })
-                .limit(6)
+                .limit(8)
                 .toArray();
 
             console.log(result);
